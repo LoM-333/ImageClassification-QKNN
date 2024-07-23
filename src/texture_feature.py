@@ -31,9 +31,7 @@ def compTextureFeatures(image, distances, angles):
 
     return features
 
-if __name__ == "__main__":
-    # Upload Image
-    FILENAME = "../tests/test_images/platypus.jpg" # test image
+def extract_texture_features(FILENAME):
     image = cv2.imread(FILENAME)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
@@ -61,4 +59,11 @@ if __name__ == "__main__":
     ])
 
     normalized_textureVector = textureVector / np.sum(textureVector)
-    print("Texture Feature Vector (normalized):", normalized_textureVector)
+
+    return normalized_textureVector
+
+if __name__ == "__main__":
+    # Upload Image
+    FILENAME = "../tests/test_images/platypus.jpg" # test image
+    texture_features = extract_texture_features(FILENAME)
+    print("Texture Feature Vector (normalized):", texture_features)
