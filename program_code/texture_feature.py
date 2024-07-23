@@ -31,39 +31,42 @@ def compTextureFeatures(image, distances, angles):
 
     return features
 
-# Upload Image
-imagePath = '../tests/test_images/platypus.jpg' # test image
-image = cv2.imread(imagePath, cv2.IMREAD_GRAYSCALE)
+if __name__ == "__main__":
+    # Upload Image
+    FILENAME = "../tests/test_images/platypus.jpg" # test image
+    image = cv2.imread(FILENAME)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 
-distances = [1]
-angles = [0, np.pi/4, np.pi/2, 3*np.pi/4]   # four directions
+    distances = [1]
+    angles = [0, np.pi/4, np.pi/2, 3*np.pi/4]   # four directions
 
-features = compTextureFeatures(image, distances, angles)
+    features = compTextureFeatures(gray_image, distances, angles)
 
-# Calculate Variances
-contrastVariance = np.var(features['contrast'])
-correlationVariance = np.var(features['correlation'])
-energyVariance = np.var(features['energy'])
-entropyVariance = np.var(features['entropy'])
+    # Calculate Variances
+    contrastVariance = np.var(features['contrast'])
+    correlationVariance = np.var(features['correlation'])
+    energyVariance = np.var(features['energy'])
+    entropyVariance = np.var(features['entropy'])
 
-# Calculate Means
-contrastMean = np.mean(features['contrast'])
-correlationMean = np.mean(features['correlation'])
-energyMean = np.mean(features['energy'])
-entropyMean = np.mean(features['entropy'])
-    
-textureVector = [
-    contrastMean, correlationMean, energyMean, entropyMean,
-    contrastVariance, correlationVariance, energyVariance, entropyVariance
-]
+    # Calculate Means
+    contrastMean = np.mean(features['contrast'])
+    correlationMean = np.mean(features['correlation'])
+    energyMean = np.mean(features['energy'])
+    entropyMean = np.mean(features['entropy'])
+        
+    textureVector = [
+        contrastMean, correlationMean, energyMean, entropyMean,
+        contrastVariance, correlationVariance, energyVariance, entropyVariance
+    ]
 
-# Normalizing the Texture Feature Vector
-def norm_textureVector(features):
-    min = np.min(features)
-    max = np.max(features)
-    scaled = (features - min) / (max - min)
-    return scaled
+    # Normalizing the Texture Feature Vector
+    def norm_textureVector(features):
+        min = np.min(features)
+        max = np.max(features)
+        scaled = (features - min) / (max - min)
+        return scaled
 
-textureVector = np.array([textureVector])
-normalized_textureVector = norm_textureVector(textureVector)
-print("Texture Feature Vector: " + normalized_textureVector)
+    textureVector = np.array([textureVector])
+    normalized_textureVector = norm_textureVector(textureVector)
+    print("Texture Feature Vector (normalized):", normalized_textureVector)
