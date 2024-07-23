@@ -63,6 +63,6 @@ def extract_texture_features(FILENAME):
     return normalized_textureVector
 
 if __name__ == "__main__":
-    FILENAME = "../tests/test_images/platypus.jpg" # test image
+    FILENAME = "../tests/test_images/platypus.jpg"
     texture_features = extract_texture_features(FILENAME)
     print("Texture Feature Vector (normalized):", texture_features)
