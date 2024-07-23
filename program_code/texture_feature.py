@@ -1,1 +1,69 @@
+import numpy as np
+import cv2
+from skimage.feature import graycomatrix, graycoprops
 
+# Calculating Texture Features with GLCM
+def compTextureFeatures(image, distances, angles):
+    glcm = graycomatrix(image, distances=distances, angles=angles)
+    features = {
+        'contrast': [],
+        'correlation': [],
+        'energy': [],
+        'entropy': []
+    }
+
+    for angle in range(len(angles)):
+
+        contrast = graycoprops(glcm, 'contrast')[0, angle]
+
+        correlation = graycoprops(glcm, 'correlation')[0, angle]
+
+        energy = graycoprops(glcm, 'energy')[0, angle]
+
+        glcmMatrix = glcm[:, :, 0, angle]
+        glcmMatrixNorm = glcmMatrix / np.sum(glcmMatrix)
+        entropy = -np.sum(glcmMatrixNorm * np.log2(glcmMatrixNorm + (glcmMatrix == 0)))
+
+        features['contrast'].append(contrast)
+        features['correlation'].append(correlation)
+        features['energy'].append(energy)
+        features["entropy"].append(entropy)
+
+    return features
+
+# Upload Image
+imagePath = '../tests/test_images/platypus.jpg' # test image
+image = cv2.imread(imagePath, cv2.IMREAD_GRAYSCALE)
+
+distances = [1]
+angles = [0, np.pi/4, np.pi/2, 3*np.pi/4]   # four directions
+
+features = compTextureFeatures(image, distances, angles)
+
+# Calculate Variances
+contrastVariance = np.var(features['contrast'])
+correlationVariance = np.var(features['correlation'])
+energyVariance = np.var(features['energy'])
+entropyVariance = np.var(features['entropy'])
+
+# Calculate Means
+contrastMean = np.mean(features['contrast'])
+correlationMean = np.mean(features['correlation'])
+energyMean = np.mean(features['energy'])
+entropyMean = np.mean(features['entropy'])
+    
+textureVector = [
+    contrastMean, correlationMean, energyMean, entropyMean,
+    contrastVariance, correlationVariance, energyVariance, entropyVariance
+]
+
+# Normalizing the Texture Feature Vector
+def norm_textureVector(features):
+    min = np.min(features)
+    max = np.max(features)
+    scaled = (features - min) / (max - min)
+    return scaled
+
+textureVector = np.array([textureVector])
+normalized_textureVector = norm_textureVector(textureVector)
+print("Texture Feature Vector: " + normalized_textureVector)
