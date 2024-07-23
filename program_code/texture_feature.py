@@ -55,18 +55,10 @@ if __name__ == "__main__":
     energyMean = np.mean(features['energy'])
     entropyMean = np.mean(features['entropy'])
         
-    textureVector = [
+    textureVector = np.array([
         contrastMean, correlationMean, energyMean, entropyMean,
         contrastVariance, correlationVariance, energyVariance, entropyVariance
-    ]
+    ])
 
-    # Normalizing the Texture Feature Vector
-    def norm_textureVector(features):
-        min = np.min(features)
-        max = np.max(features)
-        scaled = (features - min) / (max - min)
-        return scaled
-
-    textureVector = np.array([textureVector])
-    normalized_textureVector = norm_textureVector(textureVector)
+    normalized_textureVector = textureVector / np.sum(textureVector)
     print("Texture Feature Vector (normalized):", normalized_textureVector)
