@@ -43,7 +43,7 @@ class TrainingState():
         # add IQFT
         circuit.compose(QFT(n, inverse=True), inplace=True)
 
-        print(circuit)
+        #print(circuit)
 
         return circuit
 
@@ -68,7 +68,7 @@ class TrainingState():
 
         # add quantum comparator
         circuit.barrier(label="comparator")
-        circuit.compose(TrainingState.qcmp(m, M + 1), qubits=M_reg[:m+1])
+        circuit.compose(TrainingState.qcmp(m, M + 1), qubits=M_reg[:m+1]) #less than or equal (M+1)
         circuit.compose(TrainingState.qcmp(n, N + 1), qubits=N_reg[:n+1])
         circuit.barrier()
 
@@ -84,22 +84,16 @@ class TrainingState():
         
         '''
 
-
         # flag for 0 state (we don't want the 0 state)
         circuit.barrier()
-        for i in range(m):
-            circuit.cx(M_reg[i], M_reg[-1], ctrl_state=0)
-
-        for i in range(n):
-            circuit.cx(N_reg[i], N_reg[-1], ctrl_state=0)
+        circuit.mcx(M_reg[:m], M_reg[-1], ctrl_state=0)
+        circuit.mcx(N_reg[:m], N_reg[-1], ctrl_state=0)
 
         # make sure flag behavior matches that of original circuit with qcmp
         circuit.x(M_reg[-2])
         circuit.x(N_reg[-2])
-        circuit.cx(M_reg[-1], M_reg[-2])
-        circuit.cx(N_reg[-1], N_reg[-2])
         circuit.barrier()
 
-        print(circuit)
+       # print(circuit)
 
        
