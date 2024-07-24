@@ -2,7 +2,7 @@ import unittest
 import os
 import numpy as np
 import cv2
-from program_code.texture_feature import vectorize_texture_features, normed_textureVector
+from src.texture_feature import vectorize_texture_features, normed_textureVector
 
 class TextureFeatureTest(unittest.TestCase):
 
