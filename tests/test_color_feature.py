@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 import cv2
-from color_feature import extract_color_features
+from program_code.color_feature import extract_color_features
 
 class TestColorFeatureExtraction(unittest.TestCase):
     def test_extract_color_features(self):

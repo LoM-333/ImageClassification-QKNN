@@ -3,7 +3,8 @@ import cv2
 from skimage.feature import graycomatrix, graycoprops
 
 # Calculating Texture Features with GLCM
-def compTextureFeatures(image, distances, angles):
+# four directions (param angles)
+def compTextureFeatures(image, distances = [1], angles = [0, np.pi/4, np.pi/2, 3*np.pi/4]):
     glcm = graycomatrix(image, distances=distances, angles=angles)
     features = {
         'contrast': [],
@@ -31,39 +32,37 @@ def compTextureFeatures(image, distances, angles):
 
     return features
 
-# Upload Image
-imagePath = '../tests/test_images/platypus.jpg' # test image
-image = cv2.imread(imagePath, cv2.IMREAD_GRAYSCALE)
+def vectorize_texture_features(imagePath):
+    image = cv2.imread(imagePath)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 
-distances = [1]
-angles = [0, np.pi/4, np.pi/2, 3*np.pi/4]   # four directions
 
-features = compTextureFeatures(image, distances, angles)
+    features = compTextureFeatures(gray_image)
 
-# Calculate Variances
-contrastVariance = np.var(features['contrast'])
-correlationVariance = np.var(features['correlation'])
-energyVariance = np.var(features['energy'])
-entropyVariance = np.var(features['entropy'])
+    # Calculate Variances
+    contrastVariance = np.var(features['contrast'])
+    correlationVariance = np.var(features['correlation'])
+    energyVariance = np.var(features['energy'])
+    entropyVariance = np.var(features['entropy'])
 
-# Calculate Means
-contrastMean = np.mean(features['contrast'])
-correlationMean = np.mean(features['correlation'])
-energyMean = np.mean(features['energy'])
-entropyMean = np.mean(features['entropy'])
+    # Calculate Means
+    contrastMean = np.mean(features['contrast'])
+    correlationMean = np.mean(features['correlation'])
+    energyMean = np.mean(features['energy'])
+    entropyMean = np.mean(features['entropy'])
     
-textureVector = [
-    contrastMean, correlationMean, energyMean, entropyMean,
-    contrastVariance, correlationVariance, energyVariance, entropyVariance
-]
+    textureVector = [
+        contrastMean, correlationMean, energyMean, entropyMean,
+        contrastVariance, correlationVariance, energyVariance, entropyVariance
+    ]
+
+    return textureVector
 
 # Normalizing the Texture Feature Vector
-def norm_textureVector(features):
+def normed_textureVector(imagePath):
+    features = np.array(vectorize_texture_features(imagePath))
     min = np.min(features)
     max = np.max(features)
     scaled = (features - min) / (max - min)
     return scaled
-
-textureVector = np.array([textureVector])
-normalized_textureVector = norm_textureVector(textureVector)
-print("Texture Feature Vector: " + normalized_textureVector)
