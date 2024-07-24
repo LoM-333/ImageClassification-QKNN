@@ -66,3 +66,4 @@ def normed_textureVector(imagePath):
     max = np.max(features)
     scaled = (features - min) / (max - min)
     return scaled
+
