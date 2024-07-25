@@ -1,6 +1,7 @@
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit.circuit.library import GroverOperator, QFT
 from qiskit_aer import AerSimulator
+import numpy as np
 
 # Prepare Quantum Circuit (edit with actual circuit)
 numQubits = 10
@@ -11,6 +12,9 @@ qc = QuantumCircuit(qr, cr)
 
 # Superposition
 qc.h(qr)
+
+# Amplitude
+qc.cry(2 * np.arcsin(np.sqrt(0.5)), qr[0], qr[1])
 
 # Grover's Oracle
 def oracle(qc. qr):
