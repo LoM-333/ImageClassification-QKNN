@@ -3,53 +3,64 @@ from qiskit.circuit.library import GroverOperator, QFT
 from qiskit_aer import AerSimulator
 import numpy as np
 
-# Prepare Quantum Circuit (edit with actual circuit)
-numQubits = 10
+class QuantumAmplitudeEstimation:
 
-qr = QuantumRegister(numQubits)
-cr = ClassicalRegister(numQubits)
-qc = QuantumCircuit(qr, cr)
+    def __init__(self, numQubits, numEvaluationQubits):
+        self.numQubits = numQubits
+        self.numEvaluationQubits = numEvaluationQubits
 
-# Superposition
-qc.h(qr)
+        # Prepare Quantum Circuit
+        self.qr = QuantumRegister(self.numQubits)
+        self.evaluation_qr = QuantumRegister(self.numEvaluationQubits)
+        self.cr = ClassicalRegister(self.numEvaluationQubits)
+        self.qc = QuantumCircuit(self.qr, self.evaluation_qr, self.cr)
 
-# Amplitude
-qc.cry(2 * np.arcsin(np.sqrt(0.5)), qr[0], qr[1])
+    def buildCircuit(qc, qr, evaluation_qr, numEvaluationQubits):
+        # Superposition
+        qc.h(qr)
 
-# Grover's Oracle
-def oracle(qc. qr):
-    qc.cz(qr[0], qr[1])
+        # Amplitude
+        qc.cry(2 * np.arcsin(np.sqrt(0.5)), qr[0], qr[1])
 
-oracle(qc, qr)
+        # Grover's Oracle
+        qc.cz(qr[0], qr[1])
 
-# Grover Operator
-qc.barrier()
-groverOperator = GroverOperator(oracle(qc, qr))
-qc.barrier()
+        # Grover Operator
+        qc.barrier()
+        oracleCircuit = QuantumCircuit(qr)
+        oracleCircuit.cz(qr[0], qr[1])
+        groverOperator = GroverOperator(oracleCircuit)
+        qc.append(groverOperator, qr)
+        qc.barrier()
 
-qc.append(groverOperator, qr)
+        # Amplitude Estimation
+        qc.h(evaluation_qr)
 
-# Amplitude Estimation
-numEvaluationQubits = 3
-evaluation_qr = QuantumRegister(numEvaluationQubits)
-qc.add_register(evaluation_qr)
+        qc.barrier()
 
-qc.h(evaluation_qr)
+        for i in range(numEvaluationQubits):
+            controlledGroverOp = groverOperator.to_instruction().control()
+            qc.append(controlledGroverOp, [evaluation_qr[i]] + list(qr))
 
-qc.barrier()
+        qc.append(QFT(numEvaluationQubits, inverse=True).to_gate(), evaluation_qr)
 
-for i in range(numEvaluationQubits):
-    qc.append(groverOperator(qc, qr).to_instruction().control(), [evaluation_qr[i]] + list(qr))
+        qc.barrier()
 
-qc.append(QFT(numEvaluationQubits, inverse=True).to_gate(), evaluation_qr)
+        # Measure
+        qc.measure(evaluation_qr, qc.clbits[:numEvaluationQubits])
 
-qc.barrier()
+    # Execution
+    def execute(qc):
+        result = AerSimulator().run(qc, shots=1, memory=True).result
+        result = result.get_memory()[0]
 
-# Measure
-qc.measure(evaluation_qr, cr[:numEvaluationQubits])
-
-# Execution
-result = AerSimulator().run(qc, shots=1, memory=True).result
-result = result.get_memory()[0]
-
-print(result)
+    def run(self):
+        QuantumAmplitudeEstimation.buildCircuit(self.qc, self.qr, self.evaluation_qr, self.numEvaluationQubits)
+        return QuantumAmplitudeEstimation.execute(self.qc)
+    
+if __name__ == '__main__':
+    numQubits = 10
+    numEvaluationQubits = 3
+    amplitudeEstimation = QuantumAmplitudeEstimation(numQubits, numEvaluationQubits)
+    result = amplitudeEstimation.run()
+    print(result)
