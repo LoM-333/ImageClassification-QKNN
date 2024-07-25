@@ -2,6 +2,8 @@ from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit, Aer, exec
 import numpy as np
 from src import amplitude_estimation_algorithm
 from amplitude_estimation_algorithm import amplitude_estimation
+from src import compute_distances
+from compute_distances import compute_qubit_gamma
 
 def initialize_quantum_state_with_distances(distance_list):
     n = len(distance_list)
@@ -67,8 +69,10 @@ def find_k_minimum_distances(distance_list, k):
     qc = amplitude_estimation(qc, num_qubits)
     
     # Step 3a: Distance Comparison (Placeholder)
-    # Placeholder for integrating the distance comparison function
-    # distance_comparison(qc, test_vector, train_vector, aux_qubit, data_qubits)
+    gamma_circuit = compute_qubit_gamma(v0, M, V)  # Use the imported function
+    qc = qc.compose(gamma_circuit, qubits=range(M+1))  # Integrate distance comparison circuit
+    
+
     
     # Step 3b: Dürr's Algorithm - Use Grover's search to find k minimum distances
     for _ in range(int(np.sqrt(k * num_qubits))):
