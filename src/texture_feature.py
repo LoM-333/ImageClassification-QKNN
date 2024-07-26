@@ -62,8 +62,9 @@ def vectorize_texture_features(imagePath):
 # Normalizing the Texture Feature Vector
 def normed_textureVector(imagePath):
     features = np.array(vectorize_texture_features(imagePath))
+    norm = np.linalg.vector_norm(features) #preserves probability
     min = np.min(features)
     max = np.max(features)
-    scaled = (features - min) / (max - min)
+    scaled = features / norm
     return scaled
 

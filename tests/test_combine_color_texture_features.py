@@ -11,7 +11,7 @@ class TestCombineColorTextureFeaturesExtraction(unittest.TestCase):
 
         self.assertIsInstance(combinedFeatures, np.ndarray)
 
-        expected_length = 512 + 256
+        expected_length = 512 + 256 #should be 80?
         self.assertEqual(len(combinedFeatures), expected_length)
 
 if __name__ == '__main__':

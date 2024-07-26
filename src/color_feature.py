@@ -64,7 +64,8 @@ def extract_color_features(FILENAME):
     num_bins = 72
 
     color_feature_vector, _ = np.histogram(G, bins=num_bins, range=(0, num_bins))
-    normalized_feature_vector = color_feature_vector / np.sum(color_feature_vector)
+    norm = np.linalg.vector_norm(color_feature_vector) # preserves probability
+    normalized_feature_vector = color_feature_vector / norm
 
     return normalized_feature_vector
 
