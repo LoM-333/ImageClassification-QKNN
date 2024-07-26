@@ -52,7 +52,7 @@ class QuantumAmplitudeEstimation:
     # Execution
     def execute(qc):
         result = AerSimulator().run(qc, shots=1, memory=True).result
-        result = result.get_memory()[0]
+        return result.get_memory()[0]
 
     def run(self):
         QuantumAmplitudeEstimation.buildCircuit(self.qc, self.qr, self.evaluation_qr, self.numEvaluationQubits)
