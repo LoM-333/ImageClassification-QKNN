@@ -64,9 +64,11 @@ def extract_color_features(FILENAME):
     num_bins = 72
 
     color_feature_vector, _ = np.histogram(G, bins=num_bins, range=(0, num_bins))
-    normalized_feature_vector = color_feature_vector / np.sum(color_feature_vector)
-
-    return normalized_feature_vector
+    norm = np.linalg.norm(color_feature_vector)
+    if norm != 0:
+        return color_feature_vector / norm
+    else:
+        return np.array([0] * 72)
 
 if __name__ == "__main__":
     FILENAME = "../tests/test_images/platypus.jpg"

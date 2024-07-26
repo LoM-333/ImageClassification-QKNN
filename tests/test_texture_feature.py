@@ -26,7 +26,7 @@ class TextureFeatureTest(unittest.TestCase):
         self.assertAlmostEqual(unnormed[6], 0)
 
         # Clean up the test image file
-        os.remove(f"../{test_image_filename}")
+        os.remove(test_image_filename)
 
         img_paths = os.listdir("test_images")
         for i in img_paths:
