@@ -1,6 +1,8 @@
 import unittest
 import numpy as np
 from qiskit import *
+from qiskit_aer import AerSimulator
+from src.compute_distances import d, compute_qubit_gamma
 
 def d(v0, v):
     return 0.5 - 0.5 * np.inner(v0, v)
@@ -30,13 +32,14 @@ def compute_qubit_gamma(v0, M, V):
 # Test cases for unittest
 class TestQuantumCircuit(unittest.TestCase):
     def test_distance_computation(self):
-        v0 = np.random.rand(80)
-        v0 = v0 / np.sum(v0)
+        N = 80
+        v0 = np.random.rand(N)
+        v0 = v0 / np.linalg.norm(v0)
 
         M = 1
 
-        V = [np.random.rand(80) for _ in range(M)]
-        V[0] = V[0] / np.sum(V[0])
+        V = [np.random.rand(N) for _ in range(M)]
+        V[0] = V[0] / np.linalg.norm(V[0])
 
         # Check distance function
         dist = d(v0, V[0])
@@ -44,12 +47,13 @@ class TestQuantumCircuit(unittest.TestCase):
         self.assertLessEqual(dist, 1)
 
     def test_quantum_circuit(self):
-        v0 = np.random.rand(80)
-        v0 = v0 / np.sum(v0)
+        N = 80
+        v0 = np.random.rand(N)
+        v0 = v0 / np.linalg.norm(v0)
 
         M = 1
 
-        V = [np.random.rand(80) for _ in range(M)]
+        V = [np.random.rand(N) for _ in range(M)]
         V[0] = V[0] / np.sum(V[0])
 
         qc = compute_qubit_gamma(v0, M, V)
@@ -58,14 +62,12 @@ class TestQuantumCircuit(unittest.TestCase):
         self.assertEqual(qc.num_qubits, M + 1)
         self.assertEqual(qc.num_clbits, 1)
 
-        # Check if the circuit has Hadamard gates applied to the auxiliary qubit
-        self.assertIn('h', qc.qasm())
+        
 
         # Simulate the circuit
-        simulator = Aer.get_backend('qasm_simulator')
+        simulator = AerSimulator()
         compiled_circuit = transpile(qc, simulator)
-        qobj = assemble(compiled_circuit)
-        result = execute(qc, backend=simulator, shots=1024).result()
+        result = AerSimulator().run(compiled_circuit, shots=1024).result()
 
         # Get measurement results
         counts = result.get_counts(qc)

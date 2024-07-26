@@ -2,7 +2,7 @@ import numpy as np
 from qiskit import *
 
 def d(v0, v):
-    return 0.5 - 0.5 * np.inner(v0, v)
+    return 0.5 - 0.5 * np.square(np.inner(v0, v))
 
 def compute_qubit_gamma(v0, M, V):
     num_qubits = M + 1

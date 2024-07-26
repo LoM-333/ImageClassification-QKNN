@@ -1,10 +1,8 @@
-from re import M
-from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit, execute
-from qiskit.providers.aer import Aer, execute
+from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit, transpile
+from qiskit_aer import AerSimulator
 import numpy as np
-from src import amplitude_estimation_algorithm
+from src.amplitude_estimation_algorithm import QuantumAmplitudeEstimation
 from amplitude_estimation_algorithm import amplitude_estimation
-from src import compute_distances
 from compute_distances import V, compute_qubit_gamma
 
 def initialize_quantum_state_with_distances(distance_list):
@@ -75,7 +73,7 @@ def find_k_minimum_distances(distance_list, k):
     qc = qc.compose(gamma_circuit, qubits=range(M+1))  # Integrate distance comparison circuit
     
 
-    
+    min_distance = np.inf
     # Step 3b: Dürr's Algorithm - Use Grover's search to find k minimum distances
     for _ in range(int(np.sqrt(k * num_qubits))):
         oracle = oracle_min_distance(num_qubits)
@@ -83,21 +81,19 @@ def find_k_minimum_distances(distance_list, k):
         qc = grover_iteration(qc, num_qubits, oracle, diffusion_operator, 1)
 
         # Measure to find the current minimum distance
-        backend = aer.get_backend('qasm_simulator')
-        result = execute(qc, backend, shots=1).result()
+        result = AerSimulator().run(transpile(qc, AerSimulator()), shots=1).result()
         counts = result.get_counts(qc)
         measured_distances = [int(key, 2) for key in counts.keys()]
-        current_min_distance = min(measured_distances)
+        min_distance = min(measured_distances)
     
     # Step 4: Measurement to get the indexes of the k minimum distances
     qc.measure_all()
     
-    backend = aer.get_backend('qasm_simulator')
-    result = execute(qc, backend, shots=1024).result()
+    result = AerSimulator().run(transpile(qc, AerSimulator()), shots=1024).result()
     counts = result.get_counts()
     
     # Get the k most frequent results which correspond to k minimum distances
     sorted_counts = sorted(counts.items(), key=lambda item: item[1], reverse=True)
-    k_min_indexes = [int(index, 2) for index, count in sorted_counts[:k]]
+    k_min_indexes = [int(index, 2) for index, _ in sorted_counts[:k]]
     
     return k_min_indexes 

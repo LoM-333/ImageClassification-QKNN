@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
-from qiskit import Aer, execute
-from minimum_distances import initialize_quantum_state_with_distances, oracle_min_distance, diffuser, find_k_minimum_distances
+from qiskit_aer import AerSimulator
+from src.minimum_distances import initialize_quantum_state_with_distances, oracle_min_distance, diffuser, find_k_minimum_distances
 
 class TestMinimumDistances(unittest.TestCase):
 
