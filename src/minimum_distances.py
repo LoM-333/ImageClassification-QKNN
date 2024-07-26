@@ -1,9 +1,11 @@
-from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit, Aer, execute
+from re import M
+from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit, execute
+from qiskit.providers.aer import Aer, execute
 import numpy as np
 from src import amplitude_estimation_algorithm
 from amplitude_estimation_algorithm import amplitude_estimation
 from src import compute_distances
-from compute_distances import compute_qubit_gamma
+from compute_distances import V, compute_qubit_gamma
 
 def initialize_quantum_state_with_distances(distance_list):
     n = len(distance_list)
@@ -81,7 +83,7 @@ def find_k_minimum_distances(distance_list, k):
         qc = grover_iteration(qc, num_qubits, oracle, diffusion_operator, 1)
 
         # Measure to find the current minimum distance
-        backend = Aer.get_backend('qasm_simulator')
+        backend = aer.get_backend('qasm_simulator')
         result = execute(qc, backend, shots=1).result()
         counts = result.get_counts(qc)
         measured_distances = [int(key, 2) for key in counts.keys()]
@@ -90,7 +92,7 @@ def find_k_minimum_distances(distance_list, k):
     # Step 4: Measurement to get the indexes of the k minimum distances
     qc.measure_all()
     
-    backend = Aer.get_backend('qasm_simulator')
+    backend = aer.get_backend('qasm_simulator')
     result = execute(qc, backend, shots=1024).result()
     counts = result.get_counts()
     
