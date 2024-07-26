@@ -47,7 +47,7 @@ def quantize_b(B):
                 b[i][j] = 2
     return b
 
-def extract_color_features(FILENAME):
+def extract_color_features(FILENAME, normalized=True):
 
     image = cv2.imread(FILENAME)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -64,10 +64,14 @@ def extract_color_features(FILENAME):
     num_bins = 72
 
     color_feature_vector, _ = np.histogram(G, bins=num_bins, range=(0, num_bins))
-    norm = np.linalg.vector_norm(color_feature_vector) # preserves probability
-    normalized_feature_vector = color_feature_vector / norm
-
-    return normalized_feature_vector
+    if not normalized:
+        return color_feature_vector
+    else:
+        norm = np.linalg.norm(color_feature_vector)
+        if norm != 0:
+            return color_feature_vector / norm
+        else:
+            return np.array([0] * 72)
 
 if __name__ == "__main__":
     FILENAME = "../tests/test_images/platypus.jpg"

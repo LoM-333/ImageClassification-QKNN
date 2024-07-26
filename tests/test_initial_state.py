@@ -16,6 +16,9 @@ class Tests(unittest.TestCase):
         test_vec = np.array(test_vec)
         norm = np.linalg.norm(test_vec)
         test_vec = test_vec / norm
+        N=80
+        m = int(log2(1) + 1)
+        n = int(log2(N) + 1)
 
         circuit = TrainingState.prepare_beta_1(1, test_vec)
 
@@ -25,8 +28,12 @@ class Tests(unittest.TestCase):
         measurements = checkResult.get_memory()
         print(measurements)
         desired = []
-        for i in measurements():
-            pass
+        for measurement in measurements():
+            measured_M = measurement[m+2*n+4:]
+            measured_N = measurement[m+n+2:m+2*n+2] #account for flags
+            M_flags = measurement[m+2*n+2:m+2*n+4]
+            N_flags = measurement[m+n:m+n+2]
+            
 
         #print(circuit)
 
