@@ -1,75 +1,91 @@
-from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
-from qiskit.circuit.library import QFT
+from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister, AncillaRegister
+from qiskit.circuit.library import QFT, UnitaryGate, ZZFeatureMap, IntegerComparator
 from math import log2, pi
+import numpy as np
 
 class TrainingState():
 
     @staticmethod
-    # Quantum comparator that takes an equal superposition created by the Hadamard transform
-    # and creates a circuit with an ancilla that is 1 when a superposition value is strictly less than the provided threshold
-    # (number of qubits in circuit is n + 1)
-    # param: n is the number of qubits in the superposition state
-    # param: a is the threshold value
-
-    def qcmp(n: int, a: int) -> QuantumCircuit:
+    # gate that makes equations (7) and (8) in the paper (hopefully)
+    def ukl(M: int, v: np.ndarray, k: int, l: int, N: int = 80) -> QuantumCircuit:
+        # power of 2 that is an upper bound on M and N (# bits needed to represent M and N in binary)
+        m = int(log2(M) + 1)
+        n = int(log2(N) + 1)
 
         #initialize circuit
-        circuit = QuantumCircuit(n + 1)
+        M_reg = QuantumRegister(m + 2)
+        N_reg = QuantumRegister(n + 2)
+        vector_encoding = QuantumRegister(2)
+        circuit = QuantumCircuit(M_reg, N_reg, vector_encoding)
 
-        # **update ancilla**
+        for j in range(1, k + 1):
+            for i in range(1, l + 1):
+                theta = 2 * np.arcsin(v[N * (j - 1) + (i - 1)])
+                circuit.ry(theta, vector_encoding[0])
 
-        # add QFT
-        circuit.compose(QFT(n + 1), inplace=True)
+        for j in range(m):
+            if j != k:
+                circuit.cx(j, vector_encoding[0])
+        for i in range(n):
+            if i != l:
+                circuit.cx(i, vector_encoding[0]) # ?
+        
+        circuit.cx(vector_encoding[1], vector_encoding[0]) # ?
+        return circuit
 
-        # apply rotations
-        for k in range(n + 1):
-            theta = (-2 * pi * a) / (2 ** (n + 1 - k))
-            circuit.rz(theta, k)
+    @staticmethod
+    def u2(M: int, v: np.ndarray, N: int = 80) -> QuantumCircuit:
+        # power of 2 that is an upper bound on M and N (# bits needed to represent M and N in binary)
+        m = int(log2(M) + 1)
+        n = int(log2(N) + 1)
 
-        # add IQFT
-        circuit.compose(QFT(n + 1, inverse=True), inplace=True)
+        #initialize circuit
+        M_reg = QuantumRegister(m + 2)
+        N_reg = QuantumRegister(n + 2)
+        vector_encoding = QuantumRegister(2)
+        circuit = QuantumCircuit(M_reg, N_reg, vector_encoding)
 
-        circuit.barrier()
-        # **return superposition back to normal**
-
-        # add QFT
-        circuit.compose(QFT(n), inplace=True)
-
-        # apply rotations
-        for k in range(n):
-            theta = (2 * pi * a) / (2 ** (n - k))
-            circuit.rz(theta, k)
-
-        # add IQFT
-        circuit.compose(QFT(n, inverse=True), inplace=True)
-
+        for j in range(1, M + 1):
+            for i in range(1, N + 1):
+                theta = 2 * np.arcsin(v[N * (j - 1) + (i - 1)])
+                circuit.ry(theta, vector_encoding[0])
+                circuit.compose(TrainingState.ukl(M, v, j, i, N), inplace=True)
+        circuit.swap(vector_encoding[0], vector_encoding[1])
+        
         #print(circuit)
-
         return circuit
 
 
     @staticmethod
     #param: M is the number of training images
-    #param: N is the dimension of the input feature vector, which in our case, is 80
-    def prepare_training_feature_state(M: int, N: int = 80) -> QuantumCircuit:
+    #param: feature_vec is the input feature vector of dimension M*N
+    #param: N is the dimension of the input feature vector (per image), which in our case, is 80
+    def prepare_beta_0(M: int, N: int = 80) -> QuantumCircuit:
 
         # power of 2 that is an upper bound on M and N (# bits needed to represent M and N in binary)
-        m = int(log2(M + 1) + 1)
-        n = int(log2(N + 1) + 1)
+        m = int(log2(M) + 1)
+        n = int(log2(N) + 1)
 
         #initialize circuit
-        M_reg = QuantumRegister(m + 2)
-        N_reg = QuantumRegister(n + 2)
-        circuit = QuantumCircuit(M_reg, N_reg)
+        M_reg = QuantumRegister(m + 2, name="M")
+        N_reg = QuantumRegister(n + 2, name="N")
+        vector_encoding = QuantumRegister(2, name="encoding")
+        
+        #for comparator
+        M_anc = AncillaRegister(m - 1, name="M_anc") 
+        N_anc = AncillaRegister(n - 1, name="N_anc")
+        circuit = QuantumCircuit(M_reg, N_reg, vector_encoding, M_anc, N_anc)
 
         #hadamard transform; create initial superposition for M and N
         circuit.h(M_reg[:m])
         circuit.h(N_reg[:n])
 
+
+
         # add quantum comparator
         circuit.barrier(label="comparator")
-        circuit.compose(TrainingState.qcmp(m, M + 1), qubits=M_reg[:m+1]) #less than or equal (M+1)
-        circuit.compose(TrainingState.qcmp(n, N + 1), qubits=N_reg[:n+1])
+        circuit.append(IntegerComparator(m, M + 1), qargs=(M_reg[:m+1] + M_anc[:])) #less than or equal (M+1)
+        circuit.append(IntegerComparator(n, N + 1), qargs=(N_reg[:n+1] + N_anc[:]))
         circuit.barrier()
 
         '''
@@ -87,13 +103,34 @@ class TrainingState():
         # flag for 0 state (we don't want the 0 state)
         circuit.barrier()
         circuit.mcx(M_reg[:m], M_reg[-1], ctrl_state=0)
-        circuit.mcx(N_reg[:m], N_reg[-1], ctrl_state=0)
-
-        # make sure flag behavior matches that of original circuit with qcmp
-        circuit.x(M_reg[-2])
-        circuit.x(N_reg[-2])
+        circuit.mcx(N_reg[:n], N_reg[-1], ctrl_state=0)
         circuit.barrier()
 
-       # print(circuit)
+        # print(circuit)
+        return circuit
 
-       
+        
+
+    @staticmethod
+    #encoded state after u2
+    def prepare_beta_1(M: int, feature_vec: np.ndarray, N: int = 80) -> QuantumCircuit:
+        
+       # power of 2 that is an upper bound on M and N (# bits needed to represent M and N in binary)
+        m = int(log2(M) + 1)
+        n = int(log2(N) + 1)
+
+        #initialize circuit
+        M_reg = QuantumRegister(m + 2, name="M")
+        N_reg = QuantumRegister(n + 2, name="N")
+        vector_encoding = QuantumRegister(2, name="encoding")
+        #for comparator
+        M_anc = AncillaRegister(m - 1, name="M_anc") 
+        N_anc = AncillaRegister(n - 1, name="N_anc")
+        circuit = QuantumCircuit(M_reg, N_reg, vector_encoding, M_anc, N_anc)
+
+        circuit.compose(TrainingState.prepare_beta_0(M), inplace=True)
+
+        # apply rotations to encode vector state (almost definitely wrong here)
+        circuit.compose(TrainingState.u2(M, feature_vec), inplace=True)
+
+        return circuit

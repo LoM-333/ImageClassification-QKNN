@@ -7,3 +7,5 @@ def combine_color_texture_features(FILENAME):
     texture_features = normed_textureVector(FILENAME)
     return np.concatenate((color_features, texture_features))
 
+if __name__ == '__main__':
+    print(combine_color_texture_features("tests/test_images/garfield.jpg"))
