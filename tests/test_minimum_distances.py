@@ -52,3 +52,7 @@ class TestMinimumDistances(unittest.TestCase):
 if __name__ == '__main__':
     unittest.main()
 
+
+#will run and pass with (python -m unittest discover -s src -p "test_minimum_distances.py") 
+# but not with (python -m unittest src/minimum_distances.py)
+#NO CLUE WHY
