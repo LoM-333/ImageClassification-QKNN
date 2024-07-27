@@ -4,7 +4,7 @@ from src.texture_feature import *
 
 def combine_color_texture_features(FILENAME):
     color_features = extract_color_features(FILENAME)
-    texture_features = normed_textureVector(FILENAME)
+    texture_features = vectorize_texture_features(FILENAME)
     return np.concatenate((color_features, texture_features))
 
 if __name__ == '__main__':
