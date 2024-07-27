@@ -2,7 +2,7 @@ import unittest
 import os
 import numpy as np
 import cv2
-from src.texture_feature import vectorize_texture_features, normed_textureVector
+from src.texture_feature import vectorize_texture_features
 
 class TextureFeatureTest(unittest.TestCase):
 
@@ -16,7 +16,7 @@ class TextureFeatureTest(unittest.TestCase):
         test_image_filename = 'test_image.jpg'
         cv2.imwrite(test_image_filename, test_image)
 
-        unnormed = vectorize_texture_features(test_image_filename)
+        unnormed = vectorize_texture_features(test_image_filename, normalized=False)
         print(f"Un-normalized texture vector for solid red image: {unnormed}")
         # values for constant image (https://web.pdx.edu/~jduh/courses/Archive/geog481w07/Students/Hayes_GreyScaleCoOccurrenceMatrix.pdf)
         self.assertAlmostEqual(unnormed[0], 1)
@@ -30,7 +30,7 @@ class TextureFeatureTest(unittest.TestCase):
 
         img_paths = os.listdir("test_images")
         for i in img_paths:
-            normed_vec = normed_textureVector(f"test_images/{i}")
+            normed_vec = vectorize_texture_features(f"test_images/{i}")
             print(f"Normalized texture vector for {i}: {normed_vec}")
             self.assertEqual(len(normed_vec), 8)
             self.assertAlmostEqual(np.sum(normed_vec), 1.0)

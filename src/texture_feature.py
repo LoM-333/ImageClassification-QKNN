@@ -32,7 +32,7 @@ def compTextureFeatures(image, distances = [1], angles = [0, np.pi/4, np.pi/2, 3
 
     return features
 
-def vectorize_texture_features(imagePath):
+def vectorize_texture_features(imagePath, normalized=True):
     image = cv2.imread(imagePath)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
@@ -57,14 +57,13 @@ def vectorize_texture_features(imagePath):
         contrastVariance, correlationVariance, energyVariance, entropyVariance
     ]
 
-    return textureVector
+    if not normalized:
+        return textureVector
+    else:
+        norm = np.linalg.vector_norm(textureVector)
+        if norm == 0:
+            return np.array([0] * 8)
+        else:
+            return textureVector / norm
 
-# Normalizing the Texture Feature Vector
-def normed_textureVector(imagePath):
-    features = np.array(vectorize_texture_features(imagePath))
-    norm = np.linalg.vector_norm(features) #preserves probability
-    min = np.min(features)
-    max = np.max(features)
-    scaled = features / norm
-    return scaled
 
