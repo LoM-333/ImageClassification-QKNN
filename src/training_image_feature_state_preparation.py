@@ -1,5 +1,6 @@
 from qiskit import QuantumCircuit, QuantumRegister,  AncillaRegister
 from qiskit.circuit.library import IntegerComparator, QFT
+from qiskit.circuit.library.standard_gates.ry import RYGate
 from math import log2, pi
 import numpy as np
 
@@ -55,56 +56,6 @@ class TrainingState():
 
         return circuit
 
-    @staticmethod
-    # gate that makes equations (7) and (8) in the paper (hopefully)
-    def ukl_beta(M: int, v: np.ndarray, k: int, l: int, N: int = 80) -> QuantumCircuit:
-        # power of 2 that is an upper bound on M and N (# bits needed to represent M and N in binary)
-        m = int(log2(M) + 1)
-        n = int(log2(N) + 1)
-
-        #initialize circuit
-        M_reg = QuantumRegister(m + 2)
-        N_reg = QuantumRegister(n + 2)
-        vector_encoding = QuantumRegister(2)
-        circuit = QuantumCircuit(M_reg, N_reg, vector_encoding)
-
-        for j in range(1, k + 1):
-            for i in range(1, l + 1):
-                theta = 2 * np.arcsin(v[N * (j - 1) + (i - 1)])
-                circuit.ry(theta, vector_encoding[0])
-
-        for j in range(m):
-            if j != k:
-                circuit.mcx([j, M_reg[-2], M_reg[-1]], vector_encoding[0], ctrl_state="100")
-        for i in range(n):
-            if i != l:
-                circuit.mcx([i, N_reg[-2], N_reg[-1]], vector_encoding[0], ctrl_state="100")
-        
-        circuit.cx(vector_encoding[1], vector_encoding[0])
-        return circuit
-    
-    @staticmethod
-    # gate that makes equations (7) and (8) in the paper (hopefully)
-    def ukl_alpha(v: np.ndarray, l: int, N: int = 80) -> QuantumCircuit:
-        # power of 2 that is an upper bound on N (# bits needed to represent  N in binary)
-        n = int(log2(N) + 1)
-
-        #initialize circuit
-        N_reg = QuantumRegister(n + 2)
-        vector_encoding = QuantumRegister(2)
-        circuit = QuantumCircuit(N_reg, vector_encoding)
-
-
-        for i in range(1, l + 1):
-            theta = 2 * np.arcsin(v[(i - 1)])
-            circuit.ry(theta, vector_encoding[0])
-
-        for i in range(n):
-            if i != l:
-                circuit.mcx([i, N_reg[-2], N_reg[-1]], vector_encoding[0], ctrl_state="100")
-        
-        circuit.cx(vector_encoding[1], vector_encoding[0])
-        return circuit
 
     @staticmethod
     def u2_beta(M: int, v: np.ndarray, N: int = 80) -> QuantumCircuit:
@@ -120,10 +71,20 @@ class TrainingState():
 
         for j in range(1, M + 1):
             for i in range(1, N + 1):
-                #theta = 2 * np.arcsin(v[N * (j - 1) + (i - 1)])
-                #circuit.ry(theta, vector_encoding[0])
-                circuit.compose(TrainingState.ukl_beta(M, v, j, i, N), inplace=True)
-        circuit.swap(vector_encoding[0], vector_encoding[1])
+                j_bin = "{0:b}".format(j)
+                if len(j_bin) < m:
+                    j_bin = j_bin.zfill(m)
+                
+                i_bin = "{0:b}".format(i)
+                if len(i_bin) < n:
+                    i_bin = i_bin.zfill(n)
+
+                theta = 2 * np.arcsin(v[N * (j - 1) + (i - 1)])
+                ctrl_state = j_bin + "00" + i_bin + "00"
+                mcry = RYGate(theta).control(M_reg.size + N_reg.size, ctrl_state=ctrl_state) #controlled rotation based on superposition state
+                qargs = list(range(M_reg.size + N_reg.size))
+                qargs.append(circuit.num_qubits - 1)
+                circuit.append(mcry, qargs=qargs)
 
         return circuit
 
@@ -138,9 +99,18 @@ class TrainingState():
         circuit = QuantumCircuit(N_reg, vector_encoding)
 
         for i in range(1, N + 1):
-            #theta = 2 * np.arcsin(v[(i - 1)])
-            #circuit.ry(theta, vector_encoding[0])
-            circuit.compose(TrainingState.ukl_alpha(v, i, N), inplace=True)
+            i_bin = "{0:b}".format(i)
+            if len(i_bin) < n:
+                i_bin = i_bin.zfill(n)
+
+            theta = 2 * np.arcsin(v[(i - 1)])
+            ctrl_state = i_bin + "00"
+            mcry = RYGate(theta).control(N_reg.size, ctrl_state=ctrl_state) #controlled rotation based on superposition state
+            qargs = list(range(N_reg.size))
+            qargs.append(circuit.num_qubits - 2)
+            circuit.append(mcry, qargs=qargs)
+
+        return circuit
         
 
     @staticmethod
