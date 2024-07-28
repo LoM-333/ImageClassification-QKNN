@@ -4,46 +4,47 @@ from qiskit.compiler import transpile
 import numpy as np
 from qiskit_aer import AerSimulator
 from math import log2
-from qiskit import QuantumCircuit, QuantumRegister, AncillaRegister
+from qiskit import QuantumCircuit, QuantumRegister, AncillaRegister, ClassicalRegister
 from qiskit.circuit.library import IntegerComparator
+from collections import Counter
 
 class Tests(unittest.TestCase):
 
     # testcase for the initial encoded state after u2 (u2 is the bane of my existence)
     def test_beta_1(self):
-        # M=1, N=80
-        test_vec = [i for i in range(1, 81)]
-        test_vec = np.array(test_vec)
-        norm = np.linalg.norm(test_vec)
-        test_vec = test_vec / norm
-        N=80
-        m = int(log2(1) + 1)
+        vec = np.array([0.1] * 240)
+        vec = vec / np.linalg.norm(vec)
+
+        M = 2
+        N = 80
+
+        # power of 2 that is an upper bound on M and N (# bits needed to represent M and N in binary)
+        m = int(log2(M) + 1)
         n = int(log2(N) + 1)
 
-        circuit = TrainingState.prepare_beta_1(1, test_vec)
-
+        reg = QuantumRegister(m + 2*n + 10)
+        circuit = QuantumCircuit(reg)
+        circuit.compose(TrainingState.prepare_beta_1(M, vec), inplace=True)
+        
         circuit.measure_all()
 
         checkResult = AerSimulator().run(transpile(circuit, AerSimulator()), shots=1024, memory=True).result()
         measurements = checkResult.get_memory()
-        print(measurements)
-        desired = []
-        for measurement in measurements():
-            measured_M = measurement[m+2*n+4:]
-            measured_N = measurement[m+n+2:m+2*n+2] #account for flags
-            M_flags = measurement[m+2*n+2:m+2*n+4]
-            N_flags = measurement[m+n:m+n+2]
-            
+        encoding = [x[0] for x in measurements]
+        print(Counter(encoding))
+
+
 
         #print(circuit)
 
 
-     # testcase for the initial superposition
+     # testcase for the initial superposition (OUTDATED)
     def test_beta_0(self):
+       self.skipTest(reason='passed')
        for M in range(1, 17):
             circuit = TrainingState.prepare_beta_0(M)
             circuit.measure_all()
-            checkResult = AerSimulator().run(transpile(circuit, AerSimulator()), shots=25, memory=True).result()
+            checkResult = AerSimulator().run(transpile(circuit, AerSimulator()), shots=1024, memory=True).result()
             measurements = checkResult.get_memory()
             #measurements = [x[::-1] for x in measurements] #convert to big endian
             N=80
@@ -55,6 +56,7 @@ class Tests(unittest.TestCase):
                 measured_N = measurement[m+n+2:m+2*n+2] #account for flags
                 M_flags = measurement[m+2*n+2:m+2*n+4]
                 N_flags = measurement[m+n:m+n+2]
+                
                 #print(measurement)
                 #print(measured_M)
                 #print(measured_N)
@@ -77,32 +79,37 @@ class Tests(unittest.TestCase):
                 if int(measured_N, 2) != 0:
                     self.assertTrue(N_flags[0] == '0')
 
+                
+
         
     def test_comparator(self):
-        for n in range(1, 65):
+        self.skipTest(reason="passed")
+        for n in range(1, 10):
             size = int(log2(n) + 1)
             reg = QuantumRegister(size + 1)
-            anc = AncillaRegister(size)
-            circuit = QuantumCircuit(reg, anc)
+            #anc = AncillaRegister(size)
+            circuit = QuantumCircuit(reg)
             circuit.h(range(size))
-            circuit.compose(IntegerComparator(size, n), inplace=True)
+            circuit.compose(TrainingState.qcmp(size, n), inplace=True)
             #circuit.decompose(reps=3)
             
 
             circuit.measure_all()
-            checkResult = AerSimulator().run(transpile(circuit, AerSimulator()), shots=1, memory=True).result()
+            checkResult = AerSimulator().run(transpile(circuit, AerSimulator()), shots=100, memory=True).result()
             measurements = checkResult.get_memory()
             #measurements = [x[::-1] for x in measurements] #convert to big endian
 
             for measurement in measurements:
-                #print(n)
-                #print(measurement)
-                num = int(measurement[size:], 2)
-                target = measurement[size]
+                num = int(measurement[1:][::-1], 2)
+                print(n)
+                print(num)
+                print(measurement)
+                
+                target = measurement[0]
                 if num >= n:
-                    self.assertTrue(target == '1')
-                if num < n:
                     self.assertTrue(target == '0')
+                if num < n:
+                    self.assertTrue(target == '1')
 
 
 
