@@ -22,8 +22,8 @@ def swap_main(M, feature_vec: np.ndarray, N=80) -> QuantumCircuit:
     n = int(log2(N) + 1)
 
 
-    circuit = QuantumCircuit(2*m + 4*n + 8)
+    circuit = QuantumCircuit(m + 2*n + 11)
     circuit.append(TrainingState.prepare_initial(M, feature_vec, N), qargs=list(range(1, circuit.num_qubits)))
-    circuit.append(controlled_register_swap(2*m + 4*n + 7), qargs=list(range(circuit.num_qubits)))
+    circuit.append(controlled_register_swap(n + 4, m + n + 6), qargs=list(range(circuit.num_qubits)))
 
     return circuit
