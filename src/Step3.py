@@ -1,5 +1,6 @@
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister
+from qiskit.circuit.library import QFT
 from src.controlled_swap import *
 
 def controlled_register_swap(len_a, len_b) -> QuantumCircuit:
@@ -17,8 +18,9 @@ def controlled_register_swap(len_a, len_b) -> QuantumCircuit:
 def d(v0, v):
     return 0.5 - 0.5 * np.square(np.inner(v0, v))
 
-def AmplitudeEstimation(M, v0, V, reg1, reg2):
+def AmplitudeEstimation(M, v0, V, reg1, reg2, evalQubits):
     swapCircuit = controlled_register_swap(reg1, reg2)
+    qc = QuantumRegister(swapCircuit)
     qc.compose(swapCircuit, inplace=True)
 
     for j in range(M):
@@ -26,6 +28,13 @@ def AmplitudeEstimation(M, v0, V, reg1, reg2):
         theta = 2 * np.arcsin(np.sqrt(dist))
         
         qc.cry(theta, j + 1, 0)
+
+    # Phase Estimation **SEND HELP**
+    evaluation_qr = QuantumRegister(evalQubits)
+
+    qc.barrier()
+    qc.append(QFT(evalQubits, inverse=True), evaluation_qr)
+    qc.barrier()
 
     return qc
 
