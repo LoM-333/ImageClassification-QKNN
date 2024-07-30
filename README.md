@@ -5,4 +5,4 @@ Quantum Comparator: arXiv:2305.09106 [quant-ph]
 <br>
 Quantum Amplitude and Estimation: https://arxiv.org/pdf/quant-ph/0005055
 <br>
-Iterative Quantum Amplitude Estimation (IQAE): https://github.com/NEASQC/FinancialApplications/blob/main/misc/notebooks/06_Iterative_Quantum_Amplitude_Estimation_class.ipynb
+Iterative Quantum Amplitude Estimation (IQAE): https://www.nature.com/articles/s41534-021-00379-1
