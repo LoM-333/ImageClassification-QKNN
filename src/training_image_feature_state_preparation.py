@@ -1,5 +1,5 @@
-from qiskit import QuantumCircuit, QuantumRegister,  AncillaRegister
-from qiskit.circuit.library import IntegerComparator, QFT
+from qiskit import QuantumCircuit, QuantumRegister
+from qiskit.circuit.library import QFT
 from qiskit.circuit.library.standard_gates.ry import RYGate
 from math import log2, pi
 import numpy as np
@@ -85,7 +85,6 @@ class TrainingState():
                 mcry = RYGate(theta).control(M_reg.size + N_reg.size, ctrl_state=ctrl_state) #controlled rotation based on superposition state
                 qargs = list(range(M_reg.size + N_reg.size))
                 qargs.append(circuit.num_qubits - 1)
-                print(qargs)
                 circuit.append(mcry, qargs=qargs)
 
         
@@ -161,7 +160,6 @@ class TrainingState():
         circuit.mcx(N_alpha[:n], N_alpha[-1], ctrl_state=0)
         circuit.barrier()
 
-        # print(circuit)
         return circuit
 
         
@@ -189,7 +187,6 @@ class TrainingState():
         # apply rotations to encode vector state
         circuit.compose(TrainingState.u2_beta(M, feature_vec[N:]), qubits=M_beta[:] + N_beta[:] + vector_encoding_beta[:], inplace=True)
 
-        print(circuit)
         return circuit
     
     @staticmethod
