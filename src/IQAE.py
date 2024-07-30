@@ -1,34 +1,38 @@
-from qiskit import QuantumCircuit, Aer
-from qiskit.circuit.library import GroverOperator, Statevector
-from qiskit.algorithms import IterativeAmplitudeEstimation, EstimationProblem
-from qiskit.utils import QuantumInstance
-
-from src.ae_state_preparation import prep_state_ae
+from qiskit import QuantumCircuit
+from qiskit_aer import AerSimulator
+#from qiskit.circuit.library import GroverOperator, Statevector
+from qiskit_algorithms import IterativeAmplitudeEstimation, EstimationProblem
+from ae_utils import *
+from qiskit.primitives import Sampler
+from ae_state_preparation import prep_state_ae
 import numpy as np
 
-class IterativeQuantumAmplitudeEstimation:
+class IterativeQuantumAmplitudeEstimation():
     
     @staticmethod
-    def IQAE(M, N, feature_vec, numQubits, epsilon, alpha, shots=100):
+    def IQAE(M, N, feature_vec, epsilon, alpha):
 
         # Initialization Circuit
         statePrep = prep_state_ae(M, feature_vec, N)
 
+        #Grover's Oracle
+        oracle = Oracle(feature_vec, M, N)
+
+        m = int(log2(M) + 1)
+
+
         # Problem for IQAE
         problem = EstimationProblem(
             state_preparation=statePrep,
-            objective_qubits=[numQubits - 1],
-            post_processing=None
+            grover_operator=oracle,
+            objective_qubits=m,
+            
         )
-
-        # Backend
-        backend = Aer.get_backend('qasm_simulator')
-        quantumInstance = QuantumInstance(backend, shots=shots)
         
         iqae = IterativeAmplitudeEstimation(
-            epsilon=epsilon,
-            alpha=alpha,
-            quantum_instance=quantumInstance
+            epsilon_target=epsilon,
+            alpha=alpha, 
+            sampler=Sampler()
         )
 
         # Execute
@@ -40,11 +44,13 @@ class IterativeQuantumAmplitudeEstimation:
     
 if __name__ == '__main__':
     # M = images
+    M = 10
+    v = np.array([x for x in range(880)])
+    v = v / np.linalg.norm(v)
     N = 80
-    numQubits = 10
-    epsilon = 0.01  # Precision
+    epsilon = 0.02  # Precision
     alpha = 0.05    # Confidence Level
     shots = 100
 
-    iqaeResult = IterativeQuantumAmplitudeEstimation.IQAE(numQubits, epsilon, alpha, shots)
+    iqaeResult = IterativeQuantumAmplitudeEstimation.IQAE(M, N, v, epsilon, alpha)
     print(iqaeResult)

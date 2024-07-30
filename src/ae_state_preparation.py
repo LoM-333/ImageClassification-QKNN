@@ -1,5 +1,5 @@
 import numpy as np
-from src.ae_utils import *
+from ae_utils import *
 from qiskit import QuantumCircuit
 from qiskit.circuit.library.standard_gates.ry import RYGate
 from math import log2
@@ -15,15 +15,14 @@ def prep_state_ae(M: int, feature_vec: np.ndarray, N: int = 80):
     #create superposition
     circuit.h(range(m))
 
-    for j in range(1, M):
+    for j in range(1, M + 1):
             j_bin = "{0:b}".format(j)
             if len(j_bin) < m:
                 j_bin = j_bin.zfill(m)
 
-            print(N * j)
-            print(N * (j+1))
             vj = feature_vec[N * j:N * (j + 1)]
             p = d(v0, vj)
+            print(p)
             theta = 2 * np.arcsin(np.sqrt(p))
             ctrl_state = j_bin
             ctrl_state = ctrl_state[::-1]
