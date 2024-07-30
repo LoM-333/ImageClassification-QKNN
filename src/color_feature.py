@@ -1,8 +1,21 @@
 import cv2
 import numpy as np
+import os
 
 def quantize_h(H):
     h = H
+    '''
+    h[((h >= 0) & (h <= 20)) | ((316 >= 0) & (h <= 359))] = 0
+    #[0 <= h <= 20 | 316 <= h <= 359] = 0
+    h[((h >= 21) & (h <= 40))] = 1
+    h[((h >= 41) & (h <= 75))] = 2
+    h[((h >= 76) & (h <= 155))] = 3
+    h[((h >= 156) & (h <= 190))] = 4
+    h[((h >= 191) & (h <= 270))] = 5
+    h[((h >= 271) & (h <= 295))] = 6
+    h[((h >= 296) & (h <= 315))] = 7
+    '''
+    
     for i in range(H.shape[0]):
         for j in range(H.shape[1]):
             if 0 <= H[i][j] <= 20 or 316 <= H[i][j] <= 359:
@@ -21,30 +34,24 @@ def quantize_h(H):
                 h[i][j] = 6
             elif 296 <= H[i][j] <= 315:
                 h[i][j] = 7
+    
     return h
 
 def quantize_s(S):
+    
     s = S
-    for i in range(S.shape[0]):
-        for j in range(S.shape[1]):
-            if 0 <= S[i][j] < 0.2:
-                s[i][j] = 0
-            elif 0.2 <= S[i][j] < 0.7:
-                s[i][j] = 1
-            elif 0.7 <= S[i][j] < 1:
-                s[i][j] = 2
+    s[((s >= 0) & (s < 0.2))] = 0
+    s[((s >= 0.2) & (s < 0.7))] = 1
+    s[((s >= 0.7) & (s < 1))] = 2
+
     return s
 
 def quantize_b(B):
     b = B
-    for i in range(B.shape[0]):
-        for j in range(B.shape[1]):
-            if 0 <= B[i][j] < 0.2:
-                b[i][j] = 0
-            elif 0.2 <= B[i][j] < 0.7:
-                b[i][j] = 1
-            elif 0.7 <= B[i][j] < 1:
-                b[i][j] = 2
+    b[((b >= 0) & (b < 0.2))] = 0
+    b[((b >= 0.2) & (b < 0.7))] = 1
+    b[((b >= 0.7) & (b < 1))] = 2
+
     return b
 
 def extract_color_features(FILENAME, normalized=True):
@@ -54,9 +61,17 @@ def extract_color_features(FILENAME, normalized=True):
     hsb_image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
 
     H, S, B = cv2.split(hsb_image)
+  
+    # fit to match values in paper
+    H = H * (359 / 179)
+    S = S / 255
+    B = B / 255
+
+
     h = quantize_h(H)
     s = quantize_s(S)
     b = quantize_b(B)
+
 
     Q_h = 9
     Q_s = 3
@@ -74,6 +89,6 @@ def extract_color_features(FILENAME, normalized=True):
             return np.array([0] * 72)
 
 if __name__ == "__main__":
-    FILENAME = "../tests/test_images/platypus.jpg"
+    FILENAME = os.path.join(os.getcwd(), "tests", "test_images", "platypus.jpg")
     color_features = extract_color_features(FILENAME)
     print("Color Feature Vector (normalized):", color_features)
