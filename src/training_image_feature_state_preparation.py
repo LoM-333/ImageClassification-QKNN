@@ -81,11 +81,14 @@ class TrainingState():
 
                 theta = 2 * np.arcsin(v[N * (j - 1) + (i - 1)])
                 ctrl_state = j_bin + "00" + i_bin + "00"
+                ctrl_state = ctrl_state[::-1]
                 mcry = RYGate(theta).control(M_reg.size + N_reg.size, ctrl_state=ctrl_state) #controlled rotation based on superposition state
                 qargs = list(range(M_reg.size + N_reg.size))
                 qargs.append(circuit.num_qubits - 1)
+                print(qargs)
                 circuit.append(mcry, qargs=qargs)
 
+        
         return circuit
 
     @staticmethod
@@ -105,6 +108,7 @@ class TrainingState():
 
             theta = 2 * np.arcsin(v[(i - 1)])
             ctrl_state = i_bin + "00"
+            ctrl_state = ctrl_state[::-1]
             mcry = RYGate(theta).control(N_reg.size, ctrl_state=ctrl_state) #controlled rotation based on superposition state
             qargs = list(range(N_reg.size))
             qargs.append(circuit.num_qubits - 2)
@@ -185,6 +189,7 @@ class TrainingState():
         # apply rotations to encode vector state
         circuit.compose(TrainingState.u2_beta(M, feature_vec[N:]), qubits=M_beta[:] + N_beta[:] + vector_encoding_beta[:], inplace=True)
 
+        print(circuit)
         return circuit
     
     @staticmethod
