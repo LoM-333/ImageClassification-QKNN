@@ -11,7 +11,7 @@ Our project consists of two parts. The first computes the distance between two v
 ## Goals
 ☐ Integrate amplitude estimation with Dürr's Search Algorithm
 <br>
-☐ Gather metrics across a wide dataset
+☐ Compile metrics across a wide range of classification tasks and input sizes
 <br>
 ☐ Perform resource estimation using Qiskit's Aer Simulator and a classical KNN (sklearn)
 <br>
