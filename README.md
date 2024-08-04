@@ -31,7 +31,7 @@ We adapted the methods of scientific literature and other resources in the creat
 <b>Feng, C.</b>, <b>Zhao, B.</b>, et al. An Enhanced Quantum K-Nearest Neighbor Classification Algorithm Based on Polar Distance. Entropy 2023, 25, 127.
      https://doi.org/10.3390/e25010127
 <br>
-<b>Javadi-Abhari</b>, A., <b>Treinish, M.</b>, et al. Quantum computing with Qiskit, 2024, arxiv.org/abs/2405.08810.
+<b>Javadi-Abhari, A.</b>, <b>Treinish, M.</b>, et al. Quantum computing with Qiskit, 2024, arxiv.org/abs/2405.08810.
 <br>
 <b>Phalak, K.</b>, <b>Chatterjee, A.</b>, <b>Ghosh, S</b>. Quantum Random Access Memory for Dummies. Sensors 2023, 23, 7462. https://doi.org/10.3390/s23177462
 <br>
