@@ -54,7 +54,7 @@ def quantize_b(B):
 
     return b
 
-def extract_color_features(FILENAME, normalized=True):
+def extract_color_features(FILENAME, normalized=True) -> np.ndarray:
 
     image = cv2.imread(FILENAME)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
