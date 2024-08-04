@@ -4,7 +4,7 @@ from skimage.feature import graycomatrix, graycoprops
 
 # Calculating Texture Features with GLCM
 # four directions (param angles)
-def compTextureFeatures(image, distances = [1], angles = [0, np.pi/4, np.pi/2, 3*np.pi/4]):
+def compTextureFeatures(image, distances = [1], angles = [0, np.pi/4, np.pi/2, 3*np.pi/4]) -> dict[str, list]:
     glcm = graycomatrix(image, distances=distances, angles=angles)
     features = {
         'contrast': [],
@@ -32,7 +32,7 @@ def compTextureFeatures(image, distances = [1], angles = [0, np.pi/4, np.pi/2, 3
 
     return features
 
-def vectorize_texture_features(imagePath, normalized=True):
+def vectorize_texture_features(imagePath, normalized=True) -> np.ndarray:
     image = cv2.imread(imagePath)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
@@ -56,6 +56,8 @@ def vectorize_texture_features(imagePath, normalized=True):
         contrastMean, correlationMean, energyMean, entropyMean,
         contrastVariance, correlationVariance, energyVariance, entropyVariance
     ]
+
+    textureVector = np.array(textureVector)
 
     if not normalized:
         return textureVector
