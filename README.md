@@ -6,7 +6,7 @@ This algorithm is a quantum analog to the K-Nearest-Neighbors classification par
 
 <br>
 
-Our project consists of two parts. The first computes the distance between two vectors and the second finds the k nearest training vectors to a test vector, subsequently performing a classification. Our project was inspired by and designed for the 2024 MIT BWSI Quantum Software course. The primary technology used was IBM's Qiskit API.
+Our project consists of two parts. The first computes the distance between two vectors and the second finds the k nearest training vectors to a test vector, subsequently performing a classification. Our project was inspired by and designed for the 2024 MIT BWSI Quantum Software course. The primary technology used is IBM's Qiskit API.
 
 ## Goals
 ☐ Integrate amplitude estimation with Dürr's Search Algorithm
